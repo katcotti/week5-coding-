@@ -401,6 +401,70 @@ chinstraps %&gt;%
 ##   &lt;fct&gt;      &lt;dbl&gt;       &lt;dbl&gt;   &lt;dbl&gt;       &lt;int&gt;
 ## 1 female     3527.        3550    285.          34
 ## 2 male       3939.        3950    362.          34</code></pre>
+<p>Get vectors of body mass for female and male chinstrap penguins separately</p>
+<pre class="r"><code>chinstraps_f &lt;- chinstraps %&gt;% 
+  filter(sex == &quot;female&quot;) %&gt;% 
+  pull(body_mass_g)
+
+chinstraps_m &lt;- chinstraps %&gt;% 
+  filter(sex == &quot;male&quot;) %&gt;% 
+  pull(body_mass_g)</code></pre>
+<div id="t-tests-a-couple-different-ways" class="section level2">
+<h2>T-tests, a couple different ways</h2>
+<ol style="list-style-type: decimal">
+<li>Is there a significant difference in body mass between male and female chinstrap penguins? - two-sided question, not asking is one bigger than the other but asking if the mean differnece is large enough that we think they are from population has different means</li>
+</ol>
+<pre class="r"><code>chinstrap_ttest &lt;- t.test(chinstraps_f, chinstraps_m)
+chinstrap_ttest #Calls the stored object so it appears in the markdown document </code></pre>
+<pre><code>## 
+##  Welch Two Sample t-test
+## 
+## data:  chinstraps_f and chinstraps_m
+## t = -5.2077, df = 62.575, p-value = 2.264e-06
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -569.7903 -253.7391
+## sample estimates:
+## mean of x mean of y 
+##  3527.206  3938.971</code></pre>
+<pre class="r"><code>cohen.d(chinstraps_f, chinstraps_m) #Gives you the effect size, needs two vectors of values </code></pre>
+<pre><code>## 
+## Cohen&#39;s d
+## 
+## d estimate: -1.263061 (large)
+## 95 percent confidence interval:
+##      lower      upper 
+## -1.7933879 -0.7327341</code></pre>
+<ul>
+<li>Welch’s gives –&gt;
+<ul>
+<li>Actual Mean values from each group.</li>
+<li>Ho = means are equal, Ha = means are NOT equal to 0</li>
+<li>T-value: how different from 0 the means are on the t-distribution -df = measure of sample size</li>
+<li>p-value: probability that I could have gotten sample means at least as different as ours are if they were drawn from populations with the same mean</li>
+</ul></li>
+<li>Cohen.d –&gt; magnitude of effect size –&gt; metric to decribe the difference between groups that is not so highly impacted by sample size</li>
+</ul>
+<p>**SEE ANSWER KEY to coding lesson –&gt; gives info on how to use Broom package to call results of t-tests into nicely organized data frames in the document</p>
+</div>
+</div>
+<div id="are-male-chinstrap-penguins-significantly-larger-in-body-mass-than-female-chinstrap-penguins-one-sided-test-only-interested-in-one-side-of-the-test" class="section level1">
+<h1>Are male chinstrap penguins significantly larger in body mass than female chinstrap penguins? –&gt; one sided test, only interested in one side of the test…</h1>
+<pre class="r"><code>t.test(chinstraps_m, chinstraps_f, alternative = &quot;greater&quot;) #greater means first value in vector (male) is GREATER than second value in vector (female)</code></pre>
+<pre><code>## 
+##  Welch Two Sample t-test
+## 
+## data:  chinstraps_m and chinstraps_f
+## t = 5.2077, df = 62.575, p-value = 1.132e-06
+## alternative hypothesis: true difference in means is greater than 0
+## 95 percent confidence interval:
+##  279.7552      Inf
+## sample estimates:
+## mean of x mean of y 
+##  3938.971  3527.206</code></pre>
+<ul>
+<li>Male chinstrap penguin body mass is significantly different than female chinstrap body mass given the p-value &lt; alpha</li>
+</ul>
 </div>
 
 

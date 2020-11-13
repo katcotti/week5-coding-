@@ -43,4 +43,41 @@ chinstraps %>%
   )
 ``` 
 
+Get vectors of body mass for female and male chinstrap penguins separately 
 
+```{r}
+chinstraps_f <- chinstraps %>% 
+  filter(sex == "female") %>% 
+  pull(body_mass_g)
+
+chinstraps_m <- chinstraps %>% 
+  filter(sex == "male") %>% 
+  pull(body_mass_g)
+```
+
+## T-tests, a couple different ways 
+
+1. Is there a significant difference in body mass between male and female chinstrap penguins? - two-sided question, not asking is one bigger than the other but asking if the mean differnece is large enough that we think they are from population has different means
+
+```{r}
+chinstrap_ttest <- t.test(chinstraps_f, chinstraps_m)
+chinstrap_ttest #Calls the stored object so it appears in the markdown document 
+
+cohen.d(chinstraps_f, chinstraps_m) #Gives you the effect size, needs two vectors of values 
+```
+- Welch's gives --> 
+  - Actual Mean values from each group. 
+  - Ho = means are equal, Ha = means are NOT equal to 0
+  - T-value: how different from 0 the means are on the t-distribution
+  -df = measure of sample size
+  - p-value: probability that I could have gotten sample means at least as different as ours are if they were drawn from populations with the same mean 
+- Cohen.d --> magnitude of effect size -->  metric to decribe the difference between groups that is not so highly impacted by sample size
+
+**SEE ANSWER KEY to coding lesson --> gives info on how to use Broom package to call results of t-tests into nicely organized data frames in the document
+
+#  Are male chinstrap penguins significantly larger in body mass than female chinstrap penguins? --> one sided test, only interested in one side of the test... 
+
+```{r}
+t.test(chinstraps_m, chinstraps_f, alternative = "greater") #greater means first value in vector (male) is GREATER than second value in vector (female)
+```
+- Male chinstrap penguin body mass is significantly different than female chinstrap body mass given the p-value < alpha 
