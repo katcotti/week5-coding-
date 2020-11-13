@@ -1,0 +1,46 @@
+---
+title: "Penguins Size Comparison"
+author: "Kat Cotti"
+date: "11/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(palmerpenguins)
+library(effsize)
+library(broom)
+library(ggbeeswarm)
+library(car)
+```
+
+# Part 1. T-tests (compare means between two different groups)
+
+Mass comparision: male vs. female chinstrap penguins (palmer penguins data attached above)
+```{r}
+chinstraps <- penguins %>% 
+  filter(species == "Chinstrap") #Only keep chinstrap pengins
+
+#Histograms - only give one variable bc a histogram creates counts of that variable 
+ggplot(data=chinstraps, aes(x=-body_mass_g))  + 
+  geom_histogram(bins = 10) +
+  facet_wrap(~sex) #splits into two histograms based on sex
+
+#QQ Plot: closer to linear --> closer to normal distribution; give one variable
+ggplot(data = chinstraps, aes(sample = body_mass_g)) +
+  geom_qq() + 
+  facet_wrap(~sex)
+
+#Get Descriptive statistics
+chinstraps %>% 
+  group_by(sex) %>% 
+  summarize(
+    mean_mass = mean(body_mass_g),
+    median_mass = median(body_mass_g),
+    sd_mass = sd(body_mass_g),
+    sample_size = n()
+  )
+``` 
+
+
