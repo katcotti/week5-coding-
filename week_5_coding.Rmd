@@ -81,3 +81,102 @@ cohen.d(chinstraps_f, chinstraps_m) #Gives you the effect size, needs two vector
 t.test(chinstraps_m, chinstraps_f, alternative = "greater") #greater means first value in vector (male) is GREATER than second value in vector (female)
 ```
 - Male chinstrap penguin body mass is significantly different than female chinstrap body mass given the p-value < alpha 
+
+## One-way ANOVA - way to compare means across more than two groups (extension of 2 sample t-tests), have a single variable with discrete groups within it
+
+### 1. Table of counts by species and sex: look at counts per group --> CLT to determine normal distrbution
+
+```{r}
+penguins_counts <- penguins %>% 
+  count(species, sex) #gives the counts for each variable
+penguins_counts
+```
+
+Create a subset of only female penguins:
+```{r}
+penguins_f <- penguins %>% 
+  filter(sex=="female") #Create a subset of data for only female penguins
+
+#Make a histogram plot: 
+ggplot(data=penguins_f, aes(x = flipper_length_mm)) + #give one variable --> counts of the var
+  geom_histogram(aes(fill = species)) + #changes color of the different species
+  facet_wrap(~species, scales = "free") #splits the hisogram into 3 different based on species, facet wrap default is that axes labels have to match --> if you want to look at distribution within groups using scales = "free" --> see distribution with axes based on each group 
+
+#Make a qq Plot: closer to linear --> closer to normally distributed population 
+ggplot(data=penguins_f, aes(sample = flipper_length_mm)) + #give one sample variable
+  geom_qq(aes(color = species)) +
+  facet_wrap(~species, scales = "free")
+```
+
+### Find summary statistics:
+
+starting from penguins_f. create a summary table that groups by species and returnd the following
+- mean of flipper length
+- sd of flipper length
+- sample size of flipper length
+- variance 'var'
+- standard error (sd of the sampling distribution) = sd/sqrt(n)
+
+```{r}
+penguins_f_summary <- penguins_f %>% 
+  group_by(species) %>% 
+  summarize(
+    mean_flipper_length = mean(flipper_length_mm),
+    sd_flipper_length = sd(flipper_length_mm),
+    sample_size = n(),
+    se_flipper_length = sd(flipper_length_mm)/sqrt(n()),
+    var_flipper_length = var(flipper_length_mm)
+    )
+penguins_f_summary
+
+#As sample size increases you WILL detect differences in variance - same flaw as hypothesis testing - hypothesis test with null that groups have = variance
+leveneTest(flipper_length_mm ~ species, data = penguins_f)
+```
+p-value above alpha --> retain null hpothesis that the variances are equal 
+
+### Make a Beeswarm plot with the mean +/- one standard deviation - need beeswarm package attached - gives actual values of observations and arranges horizontally to give clear picture of where greater densitites of observations are
+
+```{r}
+ggplot() +
+  geom_beeswarm(data = penguins_f,#plots actual data
+                aes(x = species, y = flipper_length_mm), #in aes refers to a variable 
+                color = "gray70", #changes color of the points 
+                size = 3, #changes size of the points
+                alpha = 0.5) +   #changes transparency
+  geom_point(data = penguins_f_summary, aes(x = species,#ggplot works progressively so this will be ON top on the beeswarm
+                                            y = mean_flipper_length), 
+                                             size = 4) +
+  geom_errorbar(data = penguins_f_summary, #adds whiskers - shows +/- one standard deviation 
+                aes(x = species,
+                    ymax = mean_flipper_length +sd_flipper_length,
+                    ymin = mean_flipper_length - sd_flipper_length),
+                width = 0.1) +
+  theme_light()
+
+
+```
+### One-Way ANOVA test - aov function runs a one way ombibus ANOVA, usually we will want to run a type 3 anova test;
+- omnibus ANOVA allows us to reject that all means are equal -> if reject run a post hoc test
+
+```{r}
+penguin_aov <- aov(flipper_length_mm ~species, data = penguins_f)
+summary(penguin_aov) #look at the outcome
+
+#Post-hoc test to run pairwise comparisons: gives p values for pairwise adjusted values --> all are below 0.05 means there is a significant difference between ALL means 
+TukeyHSD(penguin_aov)
+```
+-F stat = ratio of the Between group variance / within group sum of squares -> large value means Between groups variance >> within group variance 
+p-value = probability that we could have gotten sample means at least this different if the samples were drawn from populations with the same mean --> very very small P value = reject the null hypothesis that the groups are from populations with the same mean --> all means are not the same!
+
+
+### Type III ANOVA with the car package:
+IF you have very unbalanced design (large diff in sample size, distributions, ect.) --> Use Type 3 or Orthoganal ANOVA test:
+```{r}
+#Create a linear model:
+penguin_lm <- lm(flipper_length_mm ~species, data = penguins_f)
+penguin_aov_t3 <- Anova(penguin_lm, type = "III")
+penguin_aov_t3
+```
+F-Value  - most of the time it will be very close to the F value from type 1 unless data is super super unbalanced 
+
+
